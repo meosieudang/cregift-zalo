@@ -1,23 +1,26 @@
 // src/AuthContext.ts
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useRef,
+} from "react";
 import {
   clearStorage,
   getStorage,
   removeStorage,
   setStorage,
 } from "zmp-sdk/apis";
+import usePermissionZalo from "../hooks/usePermissionZalo";
+import ModalRequestPermission from "../pages/index/modal-request-permission";
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   login: (data) => {},
   logout: () => {},
-  setUser: () => {},
-  setAccessTokenZalo(token) {},
-  accessTokenZalo: "",
-  hasAuthor: false,
-  setHasAuthor(flag) {},
+  showModalPermission: () => [],
   phoneNumberZalo: "",
-  setPhoneNumberZalo: (d) => {},
 });
 
 export const AuthProvider = ({ children }) => {
@@ -25,6 +28,63 @@ export const AuthProvider = ({ children }) => {
   const [phoneNumberZalo, setPhoneNumberZalo] = useState("");
   const [accessTokenZalo, setAccessTokenZalo] = useState(null);
   const [hasAuthor, setHasAuthor] = useState(false);
+  const refModal = useRef<{ toggle: () => void }>(null);
+  const showModalPermission = () => refModal.current?.toggle();
+
+  const {
+    mFetchInfoNumber,
+    mAuthorize,
+    mAuthorizedState,
+    mGetAccessToken,
+    mGetPhoneNumber,
+    mGetUserState,
+  } = usePermissionZalo({
+    mAuthorizedStateSuccess(authSetting) {
+      if (
+        !authSetting["scope.userInfo"] ||
+        !authSetting["scope.userPhonenumber"]
+      ) {
+        refModal.current?.toggle();
+      } else {
+        setHasAuthor(true);
+      }
+    },
+    mAuthorizeSuccess(d) {
+      mGetAccessToken.mutate();
+      mGetPhoneNumber.mutate();
+      mGetUserState.mutate();
+      refModal.current?.toggle();
+    },
+    mGetAccessTokenSuccess(d) {
+      setAccessTokenZalo(d);
+    },
+    mGetPhoneNumberSuccess(code) {
+      mFetchInfoNumber.mutate({
+        code: code ?? "",
+        access_token: accessTokenZalo ?? "",
+      });
+    },
+    mGetUserStateSuccess(d) {
+      setUser(d);
+    },
+    mFetchInfoNumberSuccess(d) {
+      setPhoneNumberZalo(d);
+    },
+  });
+  console.log(hasAuthor, "hasauthor");
+
+  useEffect(() => {
+    if (hasAuthor) {
+      mGetPhoneNumber.mutate();
+      mGetUserState.mutate();
+    }
+  }, [hasAuthor]);
+
+  useEffect(() => {
+    // refModal.current?.toggle();
+    mGetAccessToken.mutate();
+    mAuthorizedState.mutate();
+  }, []);
 
   const getLocalStorageItem = async () => {
     const res = await getStorage({ keys: ["username", "accessToken"] });
@@ -36,7 +96,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    getLocalStorageItem();
+    // getLocalStorageItem();
     console.log("AuthProvider");
   }, []); // Empty dependency array to run only on initial render
 
@@ -66,22 +126,20 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const onAccept = () => mAuthorize.mutate();
+
   return (
     <AuthContext.Provider
       value={{
         user,
         login,
         logout,
-        setUser,
-        accessTokenZalo,
-        setAccessTokenZalo,
-        hasAuthor,
-        setHasAuthor,
+        showModalPermission,
         phoneNumberZalo,
-        setPhoneNumberZalo,
       }}
     >
       {children}
+      <ModalRequestPermission ref={refModal} onAccept={onAccept} />
     </AuthContext.Provider>
   );
 };

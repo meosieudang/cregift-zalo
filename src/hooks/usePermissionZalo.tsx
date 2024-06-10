@@ -8,24 +8,27 @@ import {
   getSetting,
   getUserInfo,
 } from "zmp-sdk/apis";
-import { useAuth } from "../contexts/AuthContext";
 
 const usePermissionZalo = ({
   mAuthorizedStateSuccess,
   mAuthorizeSuccess,
+  mFetchInfoNumberSuccess,
+  mGetPhoneNumberSuccess,
+  mGetUserStateSuccess,
+  mGetAccessTokenSuccess,
 }: {
   mAuthorizedStateSuccess?: (d: any) => void;
   mAuthorizeSuccess?: (d: any) => void;
+  mFetchInfoNumberSuccess?: (d: any) => void;
+  mGetPhoneNumberSuccess?: (d: any) => void;
+  mGetUserStateSuccess?: (d: any) => void;
+  mGetAccessTokenSuccess?: (d: any) => void;
 }) => {
-  const { setUser, setAccessTokenZalo, accessTokenZalo, setPhoneNumberZalo } =
-    useAuth();
-
   const mAuthorizedState = useMutation({
     mutationFn: () => getSetting({}),
     onSuccess(data, variables, context) {
       mAuthorizedStateSuccess?.(data.authSetting);
-      console.log(data.authSetting, "dd");
-      //   const {authSetting} = data
+      console.log(data.authSetting, "mAuthorizedState");
     },
   });
   const mAuthorize = useMutation({
@@ -34,7 +37,7 @@ const usePermissionZalo = ({
         scopes: ["scope.userInfo", "scope.userPhonenumber"],
       }),
     onSuccess(data, variables, context) {
-      console.log(data, "dd");
+      console.log(data, "mAuthorizeSuccess");
       mAuthorizeSuccess?.(data);
     },
   });
@@ -42,41 +45,46 @@ const usePermissionZalo = ({
   const mGetUserState = useMutation({
     mutationFn: () => getUserInfo({ avatarType: "small" }),
     onSuccess(data, variables, context) {
-      setUser(data.userInfo);
+      mGetUserStateSuccess?.(data.userInfo);
+      console.log(data, "mGetUserState");
     },
   });
 
   const mGetPhoneNumber = useMutation({
     mutationFn: () => getPhoneNumber({ fail: console.warn }),
     onSuccess(data, variables, context) {
+      mGetPhoneNumberSuccess?.(data.token);
       console.log(data, "mGetPhoneNumber");
-      mFetchInfoNumber.mutate({ code: data.token ?? "" });
+      // mFetchInfoNumber.mutate({ code: data.token ?? "" });
     },
   });
   const mGetAccessToken = useMutation({
     mutationFn: () => getAccessToken(),
     onSuccess(data, variables, context) {
       console.log(data, "mGetAccessToken");
-      setAccessTokenZalo(data);
+      mGetAccessTokenSuccess?.(data);
     },
   });
 
   const mFetchInfoNumber = useMutation<
     AxiosResponse,
     AxiosError,
-    { code: string }
+    { code: string; access_token: string }
   >({
-    mutationFn: ({ code }) =>
+    mutationFn: ({ code, access_token }) =>
       axios.get("https://graph.zalo.me/v2.0/me/info", {
         headers: {
-          access_token: accessTokenZalo,
+          access_token: access_token,
           secret_key: "EDJinrP7DPAEwfMoX25E",
           code,
         },
       }),
     onSuccess(data, variables, context) {
-      console.log(data.data.data.number, "mFetchInfoNumber");
-      setPhoneNumberZalo(data.data?.data?.number);
+      console.log(data, "mFetchInfoNumber");
+      mFetchInfoNumberSuccess?.(data.data?.data?.number);
+    },
+    onError(error, variables, context) {
+      console.log(error, "mFetchInfoNumber error");
     },
   });
 
@@ -86,6 +94,7 @@ const usePermissionZalo = ({
     mGetUserState,
     mAuthorize,
     mGetPhoneNumber,
+    mFetchInfoNumber,
   };
 };
 

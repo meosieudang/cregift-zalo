@@ -15,11 +15,6 @@ interface AuthContextValue {
   } | null;
   login: (data: { username: string; password: string }) => void;
   logout: () => void;
-  setUser: (d) => void;
-  setAccessTokenZalo: (token) => void;
-  accessTokenZalo: string | null;
-  hasAuthor: boolean;
-  setHasAuthor: (flag) => void;
+  showModalPermission: () => void;
   phoneNumberZalo: string;
-  setPhoneNumberZalo: (d) => void;
 }

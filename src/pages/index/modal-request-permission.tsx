@@ -20,17 +20,11 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const ModalRequestPermission = React.forwardRef(({}, ref) => {
+const ModalRequestPermission = React.forwardRef<
+  { toggle: () => void },
+  { onAccept: () => void }
+>(({ onAccept }, ref) => {
   const [open, setOpen] = React.useState(false);
-  const { mAuthorize, mGetAccessToken, mGetPhoneNumber, mGetUserState } =
-    usePermissionZalo({
-      mAuthorizeSuccess(d) {
-        handleClose();
-        mGetAccessToken.mutate();
-        mGetPhoneNumber.mutate();
-        mGetUserState.mutate();
-      },
-    });
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -43,10 +37,6 @@ const ModalRequestPermission = React.forwardRef(({}, ref) => {
   React.useImperativeHandle(ref, () => ({
     toggle: () => setOpen(!open),
   }));
-
-  const onAccept = () => {
-    mAuthorize.mutate();
-  };
 
   return (
     <Dialog

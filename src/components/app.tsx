@@ -9,6 +9,7 @@ import User from "../pages/user";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "../contexts/AuthContext";
 import QRCode from "../pages/qr-code";
+import AccountInfo from "../pages/account-info";
 
 const MyApp = () => {
   // Create a client
@@ -22,9 +23,12 @@ const MyApp = () => {
             <SnackbarProvider>
               <ZMPRouter>
                 <AnimationRoutes>
-                  <Route path="/" element={<HomePage></HomePage>}></Route>
+                  <Route path="/" element={<AccountInfo></AccountInfo>}></Route>
                   <Route path="/qr-code" element={<QRCode></QRCode>}></Route>
-                  <Route path="/about" element={<About></About>}></Route>
+                  <Route
+                    path="/account-info"
+                    element={<AccountInfo></AccountInfo>}
+                  ></Route>
                   <Route path="/form" element={<Form></Form>}></Route>
                   <Route path="/user" element={<User></User>}></Route>
                 </AnimationRoutes>

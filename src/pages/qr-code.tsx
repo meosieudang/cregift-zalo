@@ -1,8 +1,17 @@
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import React from "react";
 import a from "../static/icons/qrcode.png";
 import GiftItem from "./index/gift-item";
+import { closeApp } from "zmp-sdk/apis";
 const QRCode = () => {
+  const onCloseApp = async () => {
+    try {
+      await closeApp({});
+    } catch (error) {
+      // xử lý khi gọi api thất bại
+      console.log(error);
+    }
+  };
   return (
     <Box
       sx={{
@@ -39,6 +48,13 @@ const QRCode = () => {
       <Stack p={2} gap={2}>
         <GiftItem />
         <GiftItem />
+      </Stack>
+
+      <div style={{ flex: 1 }} />
+      <Stack p={2}>
+        <Button onClick={onCloseApp} size="large" fullWidth variant="contained">
+          Xác nhận
+        </Button>
       </Stack>
     </Box>
   );
