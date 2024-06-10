@@ -53,7 +53,7 @@ const QRCode = () => {
       <div style={{ flex: 1 }} />
       <Stack p={2}>
         <Button onClick={onCloseApp} size="large" fullWidth variant="contained">
-          Xác nhận
+          Hoàn thành
         </Button>
       </Stack>
     </Box>
