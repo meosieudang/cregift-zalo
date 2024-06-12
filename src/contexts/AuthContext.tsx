@@ -13,14 +13,16 @@ import {
   setStorage,
 } from "zmp-sdk/apis";
 import usePermissionZalo from "../hooks/usePermissionZalo";
-import ModalRequestPermission from "../pages/index/modal-request-permission";
+import ModalRequestPermission from "../components/modal-request-permission";
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   login: (data) => {},
   logout: () => {},
-  showModalPermission: () => [],
+  showModalPermission: () => {},
+  checkAuthorize: () => {},
   phoneNumberZalo: "",
+  hasAuthor: false,
 });
 
 export const AuthProvider = ({ children }) => {
@@ -83,8 +85,9 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // refModal.current?.toggle();
     mGetAccessToken.mutate();
-    mAuthorizedState.mutate();
   }, []);
+
+  const checkAuthorize = () => mAuthorizedState.mutate();
 
   const getLocalStorageItem = async () => {
     const res = await getStorage({ keys: ["username", "accessToken"] });
@@ -136,6 +139,8 @@ export const AuthProvider = ({ children }) => {
         logout,
         showModalPermission,
         phoneNumberZalo,
+        checkAuthorize,
+        hasAuthor,
       }}
     >
       {children}

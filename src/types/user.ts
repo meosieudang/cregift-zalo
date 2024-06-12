@@ -16,5 +16,7 @@ interface AuthContextValue {
   login: (data: { username: string; password: string }) => void;
   logout: () => void;
   showModalPermission: () => void;
+  checkAuthorize: () => void;
   phoneNumberZalo: string;
+  hasAuthor: boolean;
 }

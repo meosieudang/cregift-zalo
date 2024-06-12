@@ -1,8 +1,8 @@
 import { Box, Button, Stack, Typography } from "@mui/material";
-import React from "react";
+import React, { useEffect } from "react";
 import a from "../static/icons/qrcode.png";
 import GiftItem from "./index/gift-item";
-import { closeApp } from "zmp-sdk/apis";
+import { closeApp, configAppView } from "zmp-sdk/apis";
 const QRCode = () => {
   const onCloseApp = async () => {
     try {
@@ -12,6 +12,24 @@ const QRCode = () => {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    configAppView({
+      headerColor: "#f2f2f2",
+      actionBar: {
+        title: "CREGift",
+        leftButton: "none",
+      },
+      success: () => {
+        // xử lý khi gọi api thành công
+      },
+      fail: (error) => {
+        // xử lý khi gọi api thất bại
+        console.log(error);
+      },
+    });
+  }, []);
+
   return (
     <Box
       sx={{

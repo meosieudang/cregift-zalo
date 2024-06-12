@@ -7,9 +7,9 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Slide from "@mui/material/Slide";
 import { TransitionProps } from "@mui/material/transitions";
-import resume from "../../static/icons/resume.png";
+import resume from "../static/icons/resume.png";
 import { Typography } from "@mui/material";
-import usePermissionZalo from "../../hooks/usePermissionZalo";
+import usePermissionZalo from "../hooks/usePermissionZalo";
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {

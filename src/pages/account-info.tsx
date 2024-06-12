@@ -8,12 +8,12 @@ import { Controller, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { useAuth } from "../contexts/AuthContext";
 import GiftItem from "./index/gift-item";
+import { configAppView } from "zmp-sdk";
 
 const ERROR_TEXT = "Trường này không được để trống";
 const ERROR_PHONE = "SĐT không hợp lệ";
 
-const regexPhoneVN =
-  /^(0)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-6|8|9]|9[0-4|6-9])[0-9]{7}$/;
+const regexPhoneVN = /((^(\+84|84|0|0084){1})(3|5|7|8|9))+([0-9]{8})$/;
 
 interface IForm {
   name_zalo: string;
@@ -23,18 +23,32 @@ interface IForm {
 }
 
 const validationSchema = yup.object({
-  name_zalo: yup.string(),
-  phone_zalo: yup.string(),
-  phone_other: yup.string().matches(regexPhoneVN, ERROR_PHONE).nullable(),
-  username: yup.string().when("name_zalo", {
-    is: (v) => Boolean(v),
-    then: () => yup.string().required(ERROR_TEXT),
-  }),
+  name_zalo: yup.string().required(ERROR_TEXT),
+  phone_zalo: yup
+    .string()
+    .matches(regexPhoneVN, ERROR_PHONE)
+    .required(ERROR_TEXT),
+  phone_other: yup
+    .string()
+    .matches(regexPhoneVN, { excludeEmptyString: true, message: ERROR_PHONE })
+    .nullable()
+    .notRequired(),
+  // username: yup.string().when("name_zalo", {
+  //   is: (v) => Boolean(v),
+  //   then: () => yup.string().required(ERROR_TEXT),
+  // }),
+  username: yup.string().required(ERROR_TEXT),
 });
 
 const AccountInfo: React.FunctionComponent = () => {
   const navigate = useNavigate();
-  const { showModalPermission, user, phoneNumberZalo } = useAuth();
+  const {
+    showModalPermission,
+    user,
+    phoneNumberZalo,
+    checkAuthorize,
+    hasAuthor,
+  } = useAuth();
   console.log(user, phoneNumberZalo, "AccountInfo");
 
   const {
@@ -64,8 +78,12 @@ const AccountInfo: React.FunctionComponent = () => {
   }, [user, phoneNumberZalo]);
 
   useEffect(() => {
-    setNavigationBarTitle({
-      title: "DỰ ÁN ACTIVATION 01",
+    configAppView({
+      headerColor: "#f2f2f2",
+      actionBar: {
+        title: "DỰ ÁN ACTIVATION 01",
+        leftButton: "back",
+      },
       success: () => {
         // xử lý khi gọi api thành công
       },
@@ -74,14 +92,17 @@ const AccountInfo: React.FunctionComponent = () => {
         console.log(error);
       },
     });
-    // mAuthorizedState.mutate();
+
+    setTimeout(() => {
+      checkAuthorize();
+    }, 500);
   }, []);
 
   const onSubmit = (d: IForm) => {
-    if (!user) {
-      showModalPermission();
-      return;
-    }
+    // if (!user) {
+    //   showModalPermission();
+    //   return;
+    // }
     console.log(d, "dd");
     navigate("/qr-code", { replace: true });
   };
@@ -96,7 +117,7 @@ const AccountInfo: React.FunctionComponent = () => {
         flexDirection: "column",
       }}
     >
-      <Stack mt={1} gap={2} bgcolor={"white"} p={2}>
+      <Stack gap={2} bgcolor={"white"} p={2} pt={4}>
         <Controller
           name="name_zalo"
           control={control}
@@ -105,7 +126,11 @@ const AccountInfo: React.FunctionComponent = () => {
               required
               label="Tên Zalo của Anh/ Chị"
               {...field}
-              disabled
+              error={Boolean(errors["name_zalo"])}
+              helperText={
+                Boolean(errors["name_zalo"]) && errors["name_zalo"]?.message
+              }
+              disabled={hasAuthor}
             />
           )}
         />
@@ -113,7 +138,16 @@ const AccountInfo: React.FunctionComponent = () => {
           name="phone_zalo"
           control={control}
           render={({ field }) => (
-            <TextField required label="Số điện thoại" {...field} disabled />
+            <TextField
+              required
+              label="Số điện thoại"
+              {...field}
+              error={Boolean(errors["phone_zalo"])}
+              helperText={
+                Boolean(errors["phone_zalo"]) && errors["phone_zalo"]?.message
+              }
+              disabled={hasAuthor}
+            />
           )}
         />
         <Controller
@@ -156,8 +190,8 @@ const AccountInfo: React.FunctionComponent = () => {
         <GiftItem />
       </Stack>
 
-      <div style={{ flex: 1 }} />
-      <Stack p={2}>
+      <div style={{ flex: 1, background: "white" }} />
+      <Stack p={2} bgcolor={"white"}>
         <Button
           onClick={handleSubmit(onSubmit)}
           size="large"
